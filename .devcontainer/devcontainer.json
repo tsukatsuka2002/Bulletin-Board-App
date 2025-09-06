@@ -12,21 +12,7 @@
 	"forwardPorts": [5173],
 
 	// Run npm ci after the container is created so dependencies are ready.
-	"postCreateCommand": "npm ci"
-	,
-
-	// Mount the host SSH agent socket so the container can use your unlocked keys.
-	"mounts": [
-		"source=${localEnv:SSH_AUTH_SOCK},target=/ssh-agent,type=bind"
-	],
-
-	// Make the socket path available inside the container process env
-	"remoteEnv": {
-		"SSH_AUTH_SOCK": "/ssh-agent"
-	}
-
-	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "yarn install",
+	"postCreateCommand": "npm ci && git config --global user.name 'tsukatsuka2002' && git config --global user.email 'dandan.niji1204@gmail.com'",
 
 	// Configure tool-specific properties.
 	// "customizations": {},
