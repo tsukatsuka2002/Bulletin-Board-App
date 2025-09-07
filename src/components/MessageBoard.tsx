@@ -34,6 +34,12 @@ export default function MessageBoard() {
 	// error: バリデーションエラーメッセージ（あれば表示する）
 	const [error, setError] = useState<string | null>(null)
 
+	// 編集用の state
+	// editingId: 現在編集中の投稿 id（null なら編集中なし）
+	// editText: 編集中の一時テキスト
+	const [editingId, setEditingId] = useState<string | null>(null)
+	const [editText, setEditText] = useState('')
+
 	// posts が変わるたびに localStorage に保存する（永続化）
 	useEffect(() => {
 		localStorage.setItem(STORAGE_KEY, JSON.stringify(posts))
@@ -68,13 +74,40 @@ export default function MessageBoard() {
 		setError(err)
 		if (err) return
 		const p: Post = { id: String(Date.now()), text: v, createdAt: new Date().toISOString() }
-		setPosts([p, ...posts])
+		// 関数型アップデートを使って競合を避ける
+		setPosts(prev => [p, ...prev])
 		setText('')
 		setError(null)
 	}
 
-	// 投稿削除
-	const remove = (id: string) => setPosts(posts.filter(p => p.id !== id))
+	// 投稿削除（関数型アップデートで安全に更新）
+	const remove = (id: string) => setPosts(prev => prev.filter(p => p.id !== id))
+
+	// 編集を開始する
+	const startEdit = (p: Post) => {
+		setEditingId(p.id)
+		setEditText(p.text)
+		setError(null)
+	}
+
+	// 編集をキャンセル
+	const cancelEdit = () => {
+		setEditingId(null)
+		setEditText('')
+		setError(null)
+	}
+
+	// 編集内容を保存
+	const saveEdit = () => {
+		const v = editText.trim()
+		const err = validate(editText)
+		setError(err)
+		if (err) return
+		setPosts(prev => prev.map(item => item.id === editingId ? { ...item, text: v } : item))
+		setEditingId(null)
+		setEditText('')
+		setError(null)
+	}
 
 	return (
 		<div>
@@ -116,13 +149,28 @@ export default function MessageBoard() {
 				{posts.length === 0 && <div>投稿がありません</div>}
 				{posts.map(p => (
 					<div key={p.id} style={{border:'1px solid #ddd', padding:8, marginBottom:8}}>
-						{/* 本文は改行を保持して表示 */}
-						<div style={{whiteSpace:'pre-wrap'}}>{p.text}</div>
-						{/* 作成日時をローカル表記で表示 */}
-						<div style={{fontSize:12, color:'#666', marginTop:6}}>{new Date(p.createdAt).toLocaleString()}</div>
-						<div style={{marginTop:6}}>
-							<button onClick={() => remove(p.id)}>削除</button>
-						</div>
+						{/* 編集中はテキストエリアと保存/キャンセルを表示 */}
+						{editingId === p.id ? (
+							<div>
+								<textarea value={editText} onChange={e => { setEditText(e.target.value); setError(validate(e.target.value)) }} rows={4} style={{width:'100%'}} maxLength={MAX_LENGTH} />
+								<div style={{display:'flex', gap:8, marginTop:6}}>
+									<button onClick={saveEdit} disabled={!!validate(editText)}>保存</button>
+									<button onClick={cancelEdit}>キャンセル</button>
+								</div>
+								{error && <div style={{color:'red', marginTop:8}}>{error}</div>}
+							</div>
+						) : (
+							<>
+								{/* 本文は改行を保持して表示 */}
+								<div style={{whiteSpace:'pre-wrap'}}>{p.text}</div>
+								{/* 作成日時をローカル表記で表示 */}
+								<div style={{fontSize:12, color:'#666', marginTop:6}}>{new Date(p.createdAt).toLocaleString()}</div>
+								<div style={{marginTop:6, display:'flex', gap:8}}>
+									<button onClick={() => startEdit(p)}>編集</button>
+									<button onClick={() => remove(p.id)}>削除</button>
+								</div>
+							</>
+						)}
 					</div>
 				))}
 			</div>
