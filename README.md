@@ -10,6 +10,7 @@
 - クイックスタート
 - 開発コンテナ (Dev Container)
 - 実行・ビルド
+- バックエンド (ローカル開発用)
 
 ---
 
@@ -64,10 +65,18 @@ npm run dev
 npm run build
 ```
 
-
-
-```bash
-npm run dev
-```
-
 ブラウザで http://localhost:5173 を開いて確認してください。
+
+## バックエンド (ローカル開発用)
+
+簡易的な Express サーバーを `server/` に追加しました。フロントエンドから API を叩く場合は以下を参考にしてください。
+
+- サーバー起動: `npm run server`（デフォルトでポート 4000）
+- 開発中に自動再起動: `npm run dev:server`（nodemon が必要です）
+
+API エンドポイントの例:
+
+- GET  http://localhost:4000/api/posts
+- POST http://localhost:4000/api/posts  (JSON body: { "text": "投稿内容" })
+
+データは `server/data.json` に保存されます。簡易的な開発用の実装です。
