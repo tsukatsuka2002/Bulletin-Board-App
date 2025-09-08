@@ -40,10 +40,22 @@ export default function MessageBoard() {
 	const [editingId, setEditingId] = useState<string | null>(null)
 	const [editText, setEditText] = useState('')
 
+	// ページネーション用 state
+	const [pageSize, setPageSize] = useState<number>(5)
+	const [currentPage, setCurrentPage] = useState<number>(1)
+
 	// posts が変わるたびに localStorage に保存する（永続化）
 	useEffect(() => {
 		localStorage.setItem(STORAGE_KEY, JSON.stringify(posts))
-	}, [posts])
+		// posts の長さが変わった時、現在のページが範囲外にならないよう補正
+		const totalPages = Math.max(1, Math.ceil(posts.length / pageSize))
+		if (currentPage > totalPages) setCurrentPage(totalPages)
+	}, [posts, pageSize, currentPage])
+
+	// 総ページ数と表示する投稿（現在のページ）
+	const totalPages = Math.max(1, Math.ceil(posts.length / pageSize))
+	const startIndex = (currentPage - 1) * pageSize
+	const visiblePosts = posts.slice(startIndex, startIndex + pageSize)
 
 	// 入力値の検証関数
 	// - 空文字は不可
@@ -76,6 +88,8 @@ export default function MessageBoard() {
 		const p: Post = { id: String(Date.now()), text: v, createdAt: new Date().toISOString() }
 		// 関数型アップデートを使って競合を避ける
 		setPosts(prev => [p, ...prev])
+		// 新規投稿は先頭ページで見えるように移動
+		setCurrentPage(1)
 		setText('')
 		setError(null)
 	}
@@ -147,7 +161,7 @@ export default function MessageBoard() {
 			{/* 投稿一覧 */}
 			<div>
 				{posts.length === 0 && <div>投稿がありません</div>}
-				{posts.map(p => (
+				{visiblePosts.map(p => (
 					<div key={p.id} style={{border:'1px solid #ddd', padding:8, marginBottom:8}}>
 						{/* 編集中はテキストエリアと保存/キャンセルを表示 */}
 						{editingId === p.id ? (
@@ -173,6 +187,29 @@ export default function MessageBoard() {
 						)}
 					</div>
 				))}
+
+				{/* ページネーション表示 */}
+				<div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:12}}>
+					<div>
+						ページ {currentPage} / {totalPages}
+					</div>
+					<div style={{display:'flex', gap:8}}>
+						<button onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>最初</button>
+						<button onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} disabled={currentPage === 1}>前へ</button>
+						<button onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))} disabled={currentPage === totalPages}>次へ</button>
+						<button onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages}>最後</button>
+					</div>
+				</div>
+
+				{/* ページサイズ切替 */}
+				<div style={{marginTop:8}}>
+					表示件数:
+					<select value={pageSize} onChange={e => { setPageSize(Number(e.target.value)); setCurrentPage(1) }} style={{marginLeft:8}}>
+						<option value={3}>3</option>
+						<option value={5}>5</option>
+						<option value={10}>10</option>
+					</select>
+				</div>
 			</div>
 		</div>
 	)
