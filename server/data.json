@@ -1,11 +1,6 @@
 {
   "posts": [
     {
-      "id": "1757320045141",
-      "text": "こんにちは",
-      "createdAt": "2025-09-08T08:27:25.141Z"
-    },
-    {
       "id": "1757318074322",
       "text": "テスト投稿 from automated smoke test",
       "createdAt": "2025-09-08T07:54:34.322Z"

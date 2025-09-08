@@ -154,9 +154,10 @@ export default function MessageBoard() {
 	}
 
 	return (
-		<div>
+		<div className="container">
+			<div className="header"><h1>掲示板アプリ</h1><div className="subtitle">軽量なメッセージ掲示板</div></div>
 			{/* 入力フォーム領域 */}
-			<div style={{ marginBottom: 12 }}>
+			<div className="card input-area">
 				<textarea
 					value={text}
 					onChange={e => {
@@ -170,12 +171,12 @@ export default function MessageBoard() {
 					aria-label="投稿内容"
 				/>
 
-				<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
-					<div style={{ display: 'flex', gap: 8 }}>
+				<div className="controls">
+					<div className="buttons">
 						<button onClick={add} disabled={!!validate(text)}>投稿</button>
-						<button onClick={() => { setText(''); setError(null) }}>クリア</button>
+						<button className="secondary" onClick={() => { setText(''); setError(null) }}>クリア</button>
 					</div>
-					<div style={{ fontSize: 12, color: text.length > MAX_LENGTH ? 'red' : '#666' }}>
+					<div className="small" style={{ color: text.length > MAX_LENGTH ? 'salmon' : undefined }}>
 						{text.length} / {MAX_LENGTH}
 					</div>
 				</div>
@@ -185,12 +186,12 @@ export default function MessageBoard() {
 			</div>
 
 			{/* 投稿一覧 */}
-			<div>
-				{loading && <div>読み込み中...</div>}
-				{!loading && posts.length === 0 && <div>投稿がありません</div>}
+			<div className="post-list">
+				{loading && <div className="small">読み込み中...</div>}
+				{!loading && posts.length === 0 && <div className="small">投稿がありません</div>}
 
 				{visiblePosts.map(p => (
-					<div key={p.id} style={{ border: '1px solid #ddd', padding: 8, marginBottom: 8 }}>
+					<div key={p.id} className="post">
 						{editingId === p.id ? (
 							<div>
 								<textarea value={editText} onChange={e => { setEditText(e.target.value); setError(validate(e.target.value)) }} rows={4} style={{ width: '100%' }} maxLength={MAX_LENGTH} />
@@ -203,21 +204,20 @@ export default function MessageBoard() {
 						) : (
 							<>
 								<div style={{ whiteSpace: 'pre-wrap' }}>{p.text}</div>
-								<div style={{ fontSize: 12, color: '#666', marginTop: 6 }}>{new Date(p.createdAt).toLocaleString()}</div>
-								<div style={{ marginTop: 6, display: 'flex', gap: 8 }}>
-									<button onClick={() => startEdit(p)}>編集</button>
-									<button onClick={() => remove(p.id)}>削除</button>
+								<div className="meta">
+									<div className="date">{new Date(p.createdAt).toLocaleString()}</div>
+									<div className="actions">
+										<button onClick={() => startEdit(p)}>編集</button>
+										<button className="button-danger" onClick={() => remove(p.id)}>削除</button>
+									</div>
 								</div>
 							</>
 						)}
 					</div>
 				))}
-
 				{/* ページネーション表示 */}
-				<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
-					<div>
-						ページ {currentPage} / {totalPages}
-					</div>
+				<div className="pagination">
+					<div className="small">ページ {currentPage} / {totalPages}</div>
 					<div style={{ display: 'flex', gap: 8 }}>
 						<button onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>最初</button>
 						<button onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} disabled={currentPage === 1}>前へ</button>
